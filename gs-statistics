@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import os
+import sys
+from adbutils import adb
+from urllib import parse
+from utils.fetch import run
+from utils.analysis import analysis, print_time, print_total_count
+
+if len(sys.argv)<2:
+    analysis()
+    print_total_count()
+    print_time()
+    sys.exit(0)
+    
+if sys.argv[1] != 'update':
+    analysis()
+    print_total_count()
+    print_time()
+    sys.exit(0)
+
+dev_list = adb.device_list()
+
+if not dev_list:
+    print('No device found.')
+    print(dev_list)
+    sys.exit(0)
+
+alive=True
+
+device, *_ = dev_list
+
+print('Device serialno: %s' % device.serial)
+
+tmp_fpath = '/tmp/gs.logcat'
+
+_filter = r'.*https://gs.hoyoverse.com/genshin/event/.*/log'
+
+logcat = device.logcat(tmp_fpath, clear=False, re_filter=_filter)
+logcat = device.logcat('/dev/stdout', clear=False, re_filter=_filter)
+
+input('\x1b[32mPress <Enter Key> if catched the url: \x1b[39m\n\n')
+
+def urlEncode(unencodedString):
+    return parse.quote(unencodedString)
+
+with open(tmp_fpath, 'r') as f:
+    txt = f.readline()
+    idx = txt.find('https://gs.hoyoverse.com/genshin/event/')
+    url = txt[idx:].strip(' \n')
+    os.remove(tmp_fpath)
+    print()
+    print(f'\x1b[34m{url}\x1b[39m\n')
+    print()
+    # s = device.shell(f'am broadcast -n "ch.pete.adbclipboard/.WriteReceiver" -e text "{urlEncode(url)}"')
+    # print(s)
+    if not url:
+        print('\x1b[31mInvalid URL.\x1b[39m')
+        sys.exit(0)
+    n_count = run(url)
+    analysis()
+    print_total_count({
+        'total_new': n_count
+    })
+    print_time()
