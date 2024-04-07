@@ -47,31 +47,32 @@ def analysis():
     for gacha_type in gacha_types:
         table = gacha_types[gacha_type]
         table_name = table._meta.table_name
-        _list: RL = list(table.select().order_by(table.time.asc()).namedtuples())
+        _list: RL = list(table.select().order_by(table.id.asc()).namedtuples())
         TOTAL_COUNT += len(_list)
         print()
         print(f'\033[1m### {table_name}(\x1b[32m{len(_list)}\x1b[39m){time_range(_list)}\033[0m')
         _5_ = _5_stars_analysis(_list)
-        _5_average = '%.2f' % (sum(map(lambda x: x['count'], _5_))/len(_5_)) if _5_ else 0
-        _5_already = _5_[0]['count'] if _5_ else 0
-        _5_percent = '%.2f' % (len(_5_[1:])/len(_list)*100) if _5_ else 0
-        _4_percent = '%.2f' % (len(list(filter(lambda x: x.rank_type==4, _list)))/len(_list)*100) if _list else 0
-        _3_percent = '%.2f' % (len(list(filter(lambda x: x.rank_type==3, _list)))/len(_list)*100) if _list else 0
+        _5_already = str(_5_[0]['count'] if _5_ else 0).rjust(2)
+        _5_percent = '%.2f' % (len(_5_[1:])/len(_list)*100) if _5_ else '0.00'
+        _5_average = '%.2f' % (sum(map(lambda x: x['count'], _5_))/len(_5_)) if _5_ and float(_5_percent) else '0.00'
+        _4_percent = '%.2f' % (len(list(filter(lambda x: x.rank_type==4, _list)))/len(_list)*100) if _list else '0.00'
+        _3_percent = '%.2f' % (len(list(filter(lambda x: x.rank_type==3, _list)))/len(_list)*100) if _list else '0.00'
         _5_listing = f'---\n'+(
             '\n'.join(map(
             lambda x: 
-                f"{x['item'].time}\x1b[{39 if x['is_cz'] else 33}m[{x['count']}] {x['item'].name}\x1b[39m", _5_[1:]
+                f"{x['item'].time}\x1b[{39 if x['is_cz'] else 33}m[{str(x['count']).rjust(2)}] {x['item'].name}\x1b[39m", _5_[1:]
             ))
         ) if _5_ else ''
 
         _4_ = _4_star_analysis(_list)
-        print(f"""\x1b[33m[五星：{_5_percent}%]\x1b[36m
-\x1b[34m[四星：{_4_percent}%]\x1b[39m
-\x1b[36m[三星：{_3_percent}%]\x1b[39m
+        _4_already = str(_4_['_4_already']).rjust(2)
+        print(f"""\x1b[33m[五星：{str(_5_percent).rjust(6)}%]\x1b[36m
+\x1b[34m[四星：{str(_4_percent).rjust(6)}%]\x1b[39m
+\x1b[36m[三星：{str(_3_percent).rjust(6)}%]\x1b[39m
 ---
 平均{_5_average}抽一个五星
 已累计\x1b[36m {_5_already} \x1b[39m抽未出五星
-已累计\x1b[36m  {_4_['_4_already']} \x1b[39m抽未出四星
+已累计\x1b[36m {_4_already} \x1b[39m抽未出四星
 {_5_listing}
 """)
 
