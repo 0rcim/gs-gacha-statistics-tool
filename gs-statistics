@@ -32,7 +32,7 @@ device, *_ = dev_list
 
 print('Device serialno: %s' % device.serial)
 
-tmp_fpath = '/tmp/gs.logcat'
+tmp_fpath = os.path.join(os.getcwd(), 'gs.logcat')
 
 _filter = r'.*https://gs.hoyoverse.com/genshin/event/.*/log'
 

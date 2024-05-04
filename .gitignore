@@ -2,3 +2,4 @@
 __*
 *.db
 *.json
+*.logcat
